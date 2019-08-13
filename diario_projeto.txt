@@ -1,0 +1,31 @@
+
+12/08/2019:
+
+1. Iniciando o projeto triSafe:
+
+1.1 Criando o ambiente virtual (via cmd):
+	C:\Users\ferna\django_workspace\trisafe> python.exe -m venv venv
+
+1.2 Ativando o ambiente virtual:
+	C:\Users\ferna\django_workspace\trisafe>.vEnv\Scripts\activate.bat
+	
+1.3 Instalando Django no ambiente virtual
+	(venv) C:\Users\ferna\django_workspace\trisafe>pip install django
+	
+1.4 Criando o projeto:
+	(venv) C:\Users\ferna\django_workspace\trisafe>django-admin startproject triSafeServerApp
+
+1.5 Criando o .gitignore:
+	https://gitignore.io/api/python,windows
+	Salvar na raiz como .gitignore
+
+2. Subindo pro github:
+2.1 Criar repositório no github.com (triSafeServerApp)
+
+2.2 Iniciando repositório local:
+	C:\Users\ferna\django_workspace\trisafe>git init
+	
+2.3 Adicionando os arquivos do projeto:
+	C:\Users\ferna\django_workspace\trisafe>git add .
+
+2.4 
