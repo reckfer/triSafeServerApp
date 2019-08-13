@@ -28,4 +28,8 @@
 2.3 Adicionando os arquivos do projeto:
 	C:\Users\ferna\django_workspace\trisafe>git add .
 
-2.4 
+2.4 Commit local:
+	C:\Users\ferna\django_workspace\trisafe>git commit -m "Iniciando o projeto."
+
+2.5 Adicionando o repositório remoto:
+	C:\Users\ferna\django_workspace\trisafe>git remote add triSafeServerApp https://github.com/reckfer/triSafeServerApp.git
