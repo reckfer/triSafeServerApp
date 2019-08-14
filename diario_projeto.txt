@@ -22,6 +22,12 @@
 2. Subindo pro github:
 2.1 Criar repositório no github.com (triSafeServerApp)
 
+	echo "# triSafeServerApp" >> README.md
+	git init
+	git add README.md
+	git commit -m "first commit"
+	git remote add origin https://github.com/reckfer/triSafeServerApp.git
+	git push -u origin master
 2.2 Iniciando repositório local:
 	C:\Users\ferna\django_workspace\trisafe>git init
 	
@@ -32,4 +38,8 @@
 	C:\Users\ferna\django_workspace\trisafe>git commit -m "Iniciando o projeto."
 
 2.5 Adicionando o repositório remoto:
+	
 	C:\Users\ferna\django_workspace\trisafe>git remote add triSafeServerApp https://github.com/reckfer/triSafeServerApp.git
+
+2.6 Subindo para o repositório remoto:
+	git push -u origin master
