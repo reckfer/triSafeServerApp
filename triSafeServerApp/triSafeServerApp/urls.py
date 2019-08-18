@@ -13,9 +13,47 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# from django.contrib import admin
+# from django.urls import path
+
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+# ]
+
 from django.contrib import admin
-from django.urls import path
+from django.conf.urls import url
+from cliente.views import ClienteViewSet
+# from cliente.models import Cliente
+from django.conf.urls import url, include
+from rest_framework import routers
+
+# # Serializers define the API representation.
+# class ClienteSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = Cliente
+#         fields = ('nome', 'endereco')
+
+# # ViewSets define the view behavior.
+# class ClienteViewSet(viewsets.ModelViewSet):
+#     queryset = Cliente.objects.all()
+#     serializer_class = ClienteSerializer
+
+# Routers provide an easy way of automatically determining the URL conf.
+router = routers.DefaultRouter()
+router.register(r'clientes', ClienteViewSet)
+
+# Wire up our API using automatic URL routing.
+# Additionally, we include login URLs for the browsable API.
+urlpatterns = [
+    
+]
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # url(r'^$', home),
+    url(r'^', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # url(r'^admin/', admin.site.urls),
+    # url(r'^home/', home),
+    # url(r'^api-auth/', include('rest_framework.urls')),
+
 ]

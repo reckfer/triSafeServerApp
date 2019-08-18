@@ -7,7 +7,7 @@
 	C:\Users\ferna\django_workspace\trisafe> python.exe -m venv venv
 
 1.2 Ativando o ambiente virtual:
-	C:\Users\ferna\django_workspace\trisafe>.vEnv\Scripts\activate.bat
+	C:\Users\ferna\django_workspace\trisafe>venv\Scripts\activate.bat
 	
 1.3 Instalando Django no ambiente virtual
 	(venv) C:\Users\ferna\django_workspace\trisafe>pip install django
@@ -15,31 +15,30 @@
 1.4 Criando o projeto:
 	(venv) C:\Users\ferna\django_workspace\trisafe>django-admin startproject triSafeServerApp
 
-1.5 Criando o .gitignore:
-	https://gitignore.io/api/python,windows
-	Salvar na raiz como .gitignore
+1.5 Criando aplicativos dentro do projeto:
+	(venv) C:\Users\ferna\django_workspace\trisafe\triSafeServerApp>python manage.py startapp cliente
 
 2. Subindo pro github:
 2.1 Criar repositório no github.com (triSafeServerApp)
 
-	echo "# triSafeServerApp" >> README.md
-	git init
-	git add README.md
-	git commit -m "first commit"
-	git remote add origin https://github.com/reckfer/triSafeServerApp.git
-	git push -u origin master
 2.2 Iniciando repositório local:
 	C:\Users\ferna\django_workspace\trisafe>git init
+
+2.3 Criando o .gitignore:
+	Acessar a URL https://gitignore.io/api/python,windows
+	Salvar na raiz como .gitignore
 	
-2.3 Adicionando os arquivos do projeto:
+2.4 Adicionando os arquivos do projeto:
 	C:\Users\ferna\django_workspace\trisafe>git add .
 
-2.4 Commit local:
+2.5 Commit local:
 	C:\Users\ferna\django_workspace\trisafe>git commit -m "Iniciando o projeto."
 
-2.5 Adicionando o repositório remoto:
+2.6 Adicionando o repositório remoto:
 	
 	C:\Users\ferna\django_workspace\trisafe>git remote add triSafeServerApp https://github.com/reckfer/triSafeServerApp.git
 
-2.6 Subindo para o repositório remoto:
-	git push -u origin master
+2.7 Subindo para o repositório remoto:
+	C:\Users\ferna\django_workspace\trisafe> git push -u triSafeServerApp master
+
+3. Desenvolvendo aplicativo Python
