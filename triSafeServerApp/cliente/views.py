@@ -19,8 +19,17 @@ class ClienteViewSet(viewsets.ModelViewSet):
     
     @action(detail=False)
     def obter(self, request):
-        idCliente = 560
-        return Response(Cliente.obter(self, idCliente))
+        
+        #idCliente = 560
+        return Response(Cliente.obter(self, request.query_params['idCliente']))
+
+    @action(detail=False)
+    def incluir(self, request):
+        nomeCliente = request.query_params['nomeCliente']
+        email = request.query_params['email']
+        nomeUsuario = request.query_params['nomeUsuario']
+
+        return Response(Cliente.incluir(self, nomeCliente, email, nomeUsuario))
 
     @action(detail=False)
     def recent_users(self, request):
@@ -28,4 +37,3 @@ class ClienteViewSet(viewsets.ModelViewSet):
         #json = JSONRenderer().render()
         return Response({"a": "abc"})
         #return Response(json.dumps({"a": "b"}))
-

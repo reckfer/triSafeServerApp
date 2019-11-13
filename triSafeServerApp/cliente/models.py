@@ -10,9 +10,12 @@ class Cliente(models.Model):
     email = models.EmailField()
 
     def obter(self, idCliente):
-        #clienteIter = ClienteIter
         
         return ClienteIter.obter(self, idCliente)
+    
+    def incluir(self, nomeCliente, email, nomeUsuario):
+        
+        return ClienteIter.incluir(self, nomeCliente, email, nomeUsuario)
 
     def __str__(self):
         return self.nome
