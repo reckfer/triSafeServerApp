@@ -1,7 +1,22 @@
 import requests
 import json
+from comum.retorno import Retorno
 
 class ClienteIter():
+    
+    @classmethod
+    def tratarRespostaHTTP(cls, respostaHTTP):
+        print("status http: " + str(respostaHTTP.status_code))
+        if respostaHTTP.status_code < 200 or respostaHTTP.status_code > 300:
+            retorno = Retorno(False, respostaHTTP.text, respostaHTTP.status_code)
+            retorno.http_status = respostaHTTP.status_code
+        else:
+            print("Text retorno: " + respostaHTTP.text)
+            retorno = Retorno(True, '', '')
+            
+        retorno.dadosJson = respostaHTTP.json()        
+        retorno.http_status = respostaHTTP.status_code
+        return retorno
 
     def obter(self, idCliente):
         token = ClienteIter.autenticarIter(self)
@@ -11,9 +26,10 @@ class ClienteIter():
         print(url)
         print(headers)
         r = requests.get(url, headers=headers)
-        print(r.text)
-        #TODO: Fazer tratamentos de erro.
-        return r.json()
+        return ClienteIter.tratarRespostaHTTP(r)
+        # print(r.text)
+        # #TODO: Fazer tratamentos de erro.
+        # return r.json()
 
     # def clientes(request):
     #     return HttpResponse('Olá clientes!')
@@ -48,20 +64,13 @@ class ClienteIter():
     #     return r.text
 
     #TODO: passar para a classe ClienteIter
-    def incluir(self, nomeCliente, email, nomeUsuario):
-        print (nomeCliente)
-        print (email)
-        print (nomeUsuario)
-        
-        token = ClienteIter.autenticarIter(self)
-        headers = {'Authorization': 'Bearer %s' %token,
-                   'Content-Type' : 'application/json' }
-        body = json.dumps({
+    def incluir(self, cliente):
+        jsonCliente = json.dumps({
             "user": {
-                "email": email,
-                "username": nomeUsuario,
-                "name": nomeCliente,
-                "document": "98989898",
+                "email": cliente.email,
+                "username": cliente.nomeUsuario,
+                "name": cliente.nome,
+                "document": cliente.cpf,
                 "expire_date": "2019-01-01 00:00:00",
                 "phone": "99999999999",
                 "language": "pt-BR",
@@ -79,10 +88,11 @@ class ClienteIter():
                 "active": True
             }
         })
+        print (jsonCliente)
+        token = ClienteIter.autenticarIter(self)
+        headers = {'Authorization': 'Bearer %s' %token,
+                   'Content-Type' : 'application/json' }
         
-        r = requests.post("https://cnxs-api.itertelemetria.com/v1/users", headers=headers, data=body)
+        r = requests.post("https://cnxs-api.itertelemetria.com/v1/users", headers=headers, data=jsonCliente)
         
-        print (r.status_code)
-        print (r.text)
-        #TODO: Fazer tratamentos de erro.
-        return r.text
+        return ClienteIter.tratarRespostaHTTP(r)
