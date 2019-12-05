@@ -6,16 +6,13 @@ class ClienteIter():
     
     @classmethod
     def tratarRespostaHTTP(cls, respostaHTTP):
-        print("status http: " + str(respostaHTTP.status_code))
+        
+        retorno = Retorno(True, '', '')
+        retorno.dadosJson = respostaHTTP.json()
+
         if respostaHTTP.status_code < 200 or respostaHTTP.status_code > 300:
             retorno = Retorno(False, respostaHTTP.text, respostaHTTP.status_code)
-            retorno.http_status = respostaHTTP.status_code
-        else:
-            print("Text retorno: " + respostaHTTP.text)
-            retorno = Retorno(True, '', '')
-            
-        retorno.dadosJson = respostaHTTP.json()        
-        retorno.http_status = respostaHTTP.status_code
+        
         return retorno
 
     def obter(self, idCliente):
@@ -27,10 +24,7 @@ class ClienteIter():
         print(headers)
         r = requests.get(url, headers=headers)
         return ClienteIter.tratarRespostaHTTP(r)
-        # print(r.text)
-        # #TODO: Fazer tratamentos de erro.
-        # return r.json()
-
+        
     # def clientes(request):
     #     return HttpResponse('Olá clientes!')
 
@@ -88,7 +82,7 @@ class ClienteIter():
                 "active": True
             }
         })
-        print (jsonCliente)
+
         token = ClienteIter.autenticarIter(self)
         headers = {'Authorization': 'Bearer %s' %token,
                    'Content-Type' : 'application/json' }

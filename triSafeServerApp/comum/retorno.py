@@ -8,20 +8,26 @@ class Retorno:
     http_status = ''
     
     def json(self):
-        if self.dadosJson is not None:
+        if self.ok and self.dadosJson is not None:
             return self.dadosJson
             
         return { "ok": self.ok, "mensagem": self.mensagem }
                     
     def __init__(self, estado, msg, http_st):
+        
         self.ok = estado
-        print(self.ok)
+        self.mensagem = msg
+
         if self.ok:
-            self.mensagem = "OK"
+            if not self.mensagem or len(str(self.mensagem)) <= 0:
+                self.mensagem = "OK"
             self.http_status = 200    
         else:
-            self.mensagem = msg
+            
             self.http_status = http_st
         
     def __str__(self):
+        if self.ok and self.dadosJson:
+            return str(self.dadosJson)
+
         return "%s - %s" % (self.http_status, self.mensagem)

@@ -7,6 +7,8 @@ from .models import Cliente
 from rest_framework.renderers import JSONRenderer
 from comum.retorno import Retorno
 import json
+import traceback
+import sys
 
 class ClienteSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -18,16 +20,31 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
     
-    @action(detail=False)
+    @action(detail=False, methods=['post'])
     def obter(self, request):
-        c = Cliente.obter(self, request.query_params['idCliente'])
-        print (c)
-        return Response(c.json())
+        try:
+            c = Cliente()
+            c.cpf = request.data['cpf']
+            c.email = request.data['email']
+            c.nomeUsuario = request.data['nomeUsuario']
+            
+            #c = Cliente.obter(self, request.query_params['idCliente'])
+            cIter = c.obter()
+            print (cIter)
+            return Response(cIter.json())
+        except Exception as e:
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.', '')
+            return Response(retorno.json())
+            # retorno = Retorno(False, str(e), 500)
+            # return Response(retorno.json(), retorno.http_status)
 
     @action(detail=False, methods=['post'])
     def incluir(self, request):
         try:
             c = Cliente()
+            #c.id_cliente_iter = 1
             c.cpf = request.data['cpf']
             c.rg = request.data['rg']
             c.nome = request.data['nomeCliente']
@@ -39,12 +56,15 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             if not retorno.ok:
                 return Response(retorno.json())
 
-            retorno = Retorno(True, '', '')
             return Response(retorno.json(), retorno.http_status)
 
         except Exception as e:
-            retorno = Retorno(False, str(e), 500)
-            return Response(retorno.json(), retorno.http_status)
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.', '')
+            return Response(retorno.json())
+            # retorno = Retorno(False, str(e), 500)
+            # return Response(retorno.json(), retorno.http_status)
 
     @action(detail=False)
     def recent_users(self, request):
