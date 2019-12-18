@@ -12,18 +12,21 @@ class Cliente(models.Model):
     nomeUsuario = models.CharField(max_length=20, blank=False, null=True)
     cpf = models.CharField(max_length=11, blank=False, null=True)
     rg = models.CharField(max_length=10, blank=False, null=True)
-    endereco = models.CharField(max_length=200, blank=False, null=True)
+    rua = models.CharField(max_length=200, blank=False, null=True)
+    numero = models.IntegerField()
     cep = models.CharField(max_length=11, blank=False, null=True)
     bairro = models.CharField(max_length=200, blank=False, null=True) 
     cidade = models.CharField(max_length=200, blank=False, null=True) 
-    estado = models.CharField(max_length=11, blank=False, null=True)
-    dt_hr_inclusao = models.DateTimeField(blank=False, null=True)
+    uf = models.CharField(max_length=11, blank=False, null=True)
     telefone = models.CharField(max_length=11, blank=False, null=True)
     email = models.EmailField()
-
+    senha = models.CharField(max_length=20, blank=False, null=True)
+    senhaConfirmacao = models.CharField(max_length=20, blank=False, null=True)
+    dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
+    
     def obter(self):
         
-        retorno = Cliente.validarDadosObrigatorios(self)
+        retorno = Cliente.validarDadosObrigatoriosChaves(self)
             
         if not retorno.ok:
             return retorno
@@ -34,8 +37,8 @@ class Cliente(models.Model):
             cliente = listaClientes[0]
             if cliente:
                 return ClienteIter.obter(self, cliente.id_cliente_iter)
-            else:
-                return Retorno(False, 'Cliente não cadastrado.', 406)        
+            
+        return Retorno(False, 'Cliente não cadastrado.', 406)       
     
     def incluir(self):
         try:
@@ -55,21 +58,23 @@ class Cliente(models.Model):
             cIter = ClienteIter()
             retorno = cIter.incluir(self)
             
-            print(str(retorno))
-            
-            self.id_cliente_iter = retorno.dadosJson['user']['id']
-            dadosCliente = retorno.dadosJson
+            if not retorno.ok:
+                return retorno
 
+            oClienteIter = retorno.dados
+            self.id_cliente_iter = oClienteIter['id']
+        
             f = open("demofile2.txt", "a")
-            f.write(str(dadosCliente))
+            f.write(str(oClienteIter))
             f.close()
             
             if not retorno.ok:
                 return retorno
 
             self.save()
-            retorno = Retorno(True, 'Cadastro realizado com sucesso.', '')
-            retorno.dadosJson = dadosCliente
+            
+            retorno = Retorno(True, 'Cadastro realizado com sucesso.', 200)
+            retorno.dados = oClienteIter
 
             return retorno
         except Exception as e:
@@ -81,11 +86,26 @@ class Cliente(models.Model):
     def __str__(self):
         return self.nome
 
-    def validarDadosObrigatorios(self):
-        if len(str(self.cpf)) <= 0:
+    def validarDadosObrigatoriosChaves(self):
+        if len(str(self.cpf).strip()) <= 0:
             return Retorno(False, "Informe o CPF.", 406)
 
-        # if len(str(self.nome)) <= 0:
-        #     return Retorno(False, "Informe o nome.", 406)
+        if len(str(self.email).strip()) <= 0:
+            return Retorno(False, "Informe o e-mail.", 406)
+        
+        return Retorno(True, '', '')
+    
+    def validarDadosObrigatorios(self):
+        
+        retorno = Cliente.validarDadosObrigatoriosChaves(self)
+            
+        if not retorno.ok:
+            return retorno
+
+        if len(str(self.nome).strip()) <= 0:
+            return Retorno(False, "Informe o nome.", 406)
+
+        if len(str(self.rg).strip()) <= 0:
+            return Retorno(False, "Informe o RG.", 406)
         
         return Retorno(True, '', '')
