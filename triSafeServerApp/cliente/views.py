@@ -42,9 +42,6 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             c = ClienteViewSet.apropriarDadosHTTP(request)
             
             retorno = c.incluir()
-            
-            if not retorno.ok:
-                return Response(retorno.json())
 
             return Response(retorno.json())
 
@@ -67,7 +64,7 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
         c = ClienteViewSet.apropriarDadosHTTPChave(request)
         
         c.rg = request.data['rg']
-        c.nome = request.data['nomeCliente']
+        c.nome = request.data['nome']
         c.nomeUsuario = request.data['nomeUsuario']
         c.rua = request.data['rua']
         c.telefone = request.data['telefone']

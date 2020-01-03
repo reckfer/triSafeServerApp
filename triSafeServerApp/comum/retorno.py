@@ -2,38 +2,51 @@ from django.forms.models import model_to_dict
 import json
 
 class Retorno:
-    ok = False
-    dados = ''
-    mensagem = ''
-    http_status = ''
-    
-    def json(self):
-        return self.criarJson()
-                    
-    def __init__(self, estado, msg, http_st):
-        
-        self.ok = estado
-        self.mensagem = msg
+                        
+    def __init__(self, ind_ok = False, msg = '', codMensagem = '', httpStatus = 500):        
+        self.estado = EstadoExecucao(ind_ok, msg, codMensagem, httpStatus)
+        self.dados = ''
 
-        if self.ok:
-            if not self.mensagem or len(str(self.mensagem)) <= 0:
-                self.mensagem = "OK"
-            self.http_status = 200
-        else:            
-            self.http_status = http_st
-        
-    def __str__(self):
-        return json.dumps(self.criarJson())
-        
-    def criarJson(self):
+    def json(self):
+        return self.__criarJson__()
+
+    def __criarJson__(self):
         if type(self.dados) == 'dict':
             oDados = model_to_dict(self.dados)
         oDados = self.dados
 
         ret = {
-            "ok": self.ok,
+            "estado": self.estado.json(),
             "dados": oDados,
-            "mensagem": self.mensagem,
-            "http_status": self.http_status
             }
         return ret
+    
+    def __str__(self):
+        return json.dumps(self.__criarJson__())
+
+class EstadoExecucao:
+    def __init__(self, indOK = False, msg = '', codMensagem = '', httpStatus = 500):
+        
+        self.ok = indOK
+        self.mensagem = msg
+        self.codMensagem = codMensagem
+
+        if self.ok:            
+            self.httpStatus = 200
+        else:            
+            self.httpStatus = httpStatus
+        
+    def json(self):
+        return self.__criarJson__()
+
+    def __criarJson__(self):
+        ret = {
+            "ok": self.ok,
+            "mensagem": self.mensagem,
+            "cod_mensagem": self.codMensagem,
+            "http_status": self.httpStatus
+            }
+        return ret
+
+    def __str__(self):
+        return json.dumps(self.__criarJson__())

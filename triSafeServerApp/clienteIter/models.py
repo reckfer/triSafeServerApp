@@ -10,7 +10,7 @@ class ClienteIter():
         if respostaHTTP.status_code < 200 or respostaHTTP.status_code > 300:
             retorno = Retorno(False, respostaHTTP.text, respostaHTTP.status_code)
         else:
-            retorno = Retorno(True, '', '')
+            retorno = Retorno(True)
             retorno.dados = respostaHTTP.json()['user']
 
         return retorno
@@ -25,19 +25,6 @@ class ClienteIter():
         r = requests.get(url, headers=headers)
         return ClienteIter.tratarRespostaHTTP(r)
         
-    # def clientes(request):
-    #     return HttpResponse('Olá clientes!')
-
-    # def cliente_por_codigo(request, id):
-    #     clientes = listarClientesTriSafeIter(id)
-
-    #     return HttpResponse('Detalhes do cliente: %s' %clientes)
-
-    # def cliente_por_nome(request, nome):
-    #     print ("Incluindo cliente")
-    #     resposta = incluir(nome)
-    #     return HttpResponse('Detalhes do cliente: %s' %resposta)
-
     def autenticarIter(self):
         headers = {'Authorization': 'Basic ZG9jdW1lbnRhY2FvQGl0ZXIuc2M6ZG9jdW1lbnRhY2FvMTIz'}
         r = requests.get("http://cnxs-api.itertelemetria.com/v1/sign_in", headers=headers)
@@ -45,17 +32,6 @@ class ClienteIter():
         #TODO:Fazer tratamentos de erro.
         respostaJson = r.json()
         return respostaJson["token"]
-
-    # def listarClientesTriSafeIter(idCliente):
-    #     token = autenticarIter()
-    #     headers = {'Authorization': 'Bearer %s' %token,
-    #                'Content-Type' : 'application/json' }
-    #     params = { 'company_id' : idCliente }    
-        
-    #     r = requests.get("https://cnxs-api.itertelemetria.com/v1/users", headers=headers, params=params)
-        
-    #     #TODO: Fazer tratamentos de erro.
-    #     return r.text
 
     #TODO: passar para a classe ClienteIter
     def incluir(self, cliente):
