@@ -127,8 +127,8 @@ class Cliente(models.Model):
         if len(str(self.nome).strip()) <= 0:
             return Retorno(False, "Informe o nome.", 406)
 
-        if len(str(self.rg).strip()) <= 0:
-            return Retorno(False, "Informe o RG.", 406)
+        # if len(str(self.rg).strip()) <= 0:
+        #     return Retorno(False, "Informe o RG.", 406)
         
         return Retorno(True)
     
