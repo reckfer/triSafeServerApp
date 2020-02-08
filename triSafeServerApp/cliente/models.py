@@ -25,31 +25,36 @@ class Cliente(models.Model):
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
     
     def obter(self):
-        
-        retorno = Cliente.validarDadosObrigatoriosChaves(self)
-            
-        if not retorno.estado.ok:
-            return retorno
+        try:
+            retorno = Cliente.validarDadosObrigatoriosChaves(self)
+                
+            if not retorno.estado.ok:
+                return retorno
 
-        retorno = Retorno(False, 'Cliente não cadastrado', 'NaoCadastrado', 406)
-        
-        # Valida se o cliente já está cadastrado.
-        listaClientes = Cliente.objects.filter(cpf=self.cpf)
-        if listaClientes:
-            oCliente = listaClientes[0]
-            if oCliente:
-                # Obtem o cadastro na Iter.
-                oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
+            retorno = Retorno(False, 'Cliente não cadastrado', 'NaoCadastrado', 406)
+            
+            # Valida se o cliente já está cadastrado.
+            listaClientes = Cliente.objects.filter(cpf=self.cpf)
+            if listaClientes:
+                oCliente = listaClientes[0]
+                if oCliente:
+                    # Obtem o cadastro na Iter.
+                    oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
+                    
+                    if not oRetornoClienteIter.estado.ok:
+                        return oRetornoClienteIter
+                    
+                    self.converterDeClienteIter(oRetornoClienteIter.dados)
+                    retorno = Retorno(True)
+                    retorno.dados = self.json()
+            
+            return retorno
+        except Exception as e:
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
+            return retorno
                 
-                if not oRetornoClienteIter.estado.ok:
-                    return oRetornoClienteIter
-                
-                self.converterDeClienteIter(oRetornoClienteIter.dados)
-                retorno = Retorno(True)
-                retorno.dados = self.json()
-        
-        return retorno
-    
     def incluir(self):
         try:
             retorno = Cliente.validarDadosObrigatorios(self)
@@ -126,10 +131,6 @@ class Cliente(models.Model):
 
         if len(str(self.nome).strip()) <= 0:
             return Retorno(False, "Informe o nome.", 406)
-
-        # if len(str(self.rg).strip()) <= 0:
-        #     return Retorno(False, "Informe o RG.", 406)
-        
         return Retorno(True)
     
     def json(self):

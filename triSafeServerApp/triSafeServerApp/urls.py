@@ -16,14 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# ]
-
 from django.contrib import admin
 from django.conf.urls import url
 from cliente.views import ClienteViewSet
-# from cliente.models import Cliente
+from produto.views import ProdutoViewSet
+from boleto.views import BoletoViewSet
+from contrato.views import ContratoViewSet
 from django.conf.urls import url, include
 from rest_framework import routers
 
@@ -42,6 +40,11 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'clientes', ClienteViewSet)
 router.register(r'clientes/incluir/', ClienteViewSet)
+router.register(r'produtos', ProdutoViewSet)
+router.register(r'produtos/listar', ProdutoViewSet)
+router.register(r'produtos/contratar', ProdutoViewSet)
+router.register(r'contratos', ContratoViewSet)
+router.register(r'contratos/efetivar/', ContratoViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
@@ -50,12 +53,7 @@ urlpatterns = [
 ]
 
 urlpatterns = [
-    # url(r'^$', home),
     url(r'^admin/', admin.site.urls),
     url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    
-    # url(r'^home/', home),
-    # url(r'^api-auth/', include('rest_framework.urls')),
-
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

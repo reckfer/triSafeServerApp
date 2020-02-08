@@ -1,4 +1,5 @@
 from django.forms.models import model_to_dict
+from django.db.models.query import QuerySet
 import json
 
 class Retorno:
@@ -11,9 +12,12 @@ class Retorno:
         return self.__criarJson__()
 
     def __criarJson__(self):
+        oDados = self.dados
+        
         if type(self.dados) == 'dict':
             oDados = model_to_dict(self.dados)
-        oDados = self.dados
+        elif isinstance(self.dados, QuerySet):
+            oDados = list(self.dados.values())
 
         ret = {
             "estado": self.estado.json(),
