@@ -7,6 +7,7 @@ from comum.retorno import Retorno
 from cliente.models import Cliente
 from produto.models import Produto
 from boleto.models import BoletoGerenciaNet
+from fpdf import FPDF
 
 class Contrato(models.Model):
     # Tipos de produtos
@@ -24,37 +25,46 @@ class Contrato(models.Model):
 
     def efetivar(self):
         try:
-            # retornoCliente = self.cliente.obter()
+            self.gerarContratoPDF()
+            # # retornoCliente = self.cliente.obter()
 
-            # if not retornoCliente.estado.ok:
-            #     return retornoCliente
-            clienteTmp = Cliente()
-            clienteTmp.nome = "Fernando teste"
-            clienteTmp.cpf = "82951128053"
-            clienteTmp.email = "nandorex@gmail.com"
-            clienteTmp.telefone = "51999454554"
+            # # if not retornoCliente.estado.ok:
+            # #     return retornoCliente
+            # clienteTmp = Cliente()
+            # clienteTmp.nome = "Fernando teste"
+            # clienteTmp.cpf = "82951128053"
+            # clienteTmp.email = "nandorex@gmail.com"
+            # clienteTmp.telefone = "51999454554"
 
-            oContrato = Contrato()
-            oContrato.cliente = clienteTmp
+            # oContrato = Contrato()
+            # oContrato.cliente = clienteTmp
 
-            # oContrato.produto = self
-            oContrato.valorTotal = 243.00
+            # # oContrato.produto = self
+            # oContrato.valorTotal = 243.00
 
-            oBoleto = BoletoGerenciaNet()
-            retornoBoleto = oBoleto.gerar(oContrato)
+            # oBoleto = BoletoGerenciaNet()
+            # retornoBoleto = oBoleto.gerar(oContrato)
             
-            if not retornoBoleto.estado.ok:
-                return retornoBoleto
+            # if not retornoBoleto.estado.ok:
+            #     return retornoBoleto
 
-            # retorno = Retorno(True, 'Cadastro realizado com sucesso.', 200)
-            # retorno.dados = retornoBoleto.json()
+            # return retornoBoleto
 
-            return retornoBoleto
+            retorno = Retorno(True)
+            return retorno
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
+    
+    def gerarContratoPDF(self):
+        
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="Welcome to Py", ln=1, align="C")
+        pdf.output("simple_demo.pdf")
     
     def json(self):
         return self.__criarJson__()

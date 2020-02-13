@@ -110,7 +110,7 @@ class BoletoGerenciaNet(models.Model):
         return ret
 
     def __str__(self):
-        return self.url
+        return self.url_pdf
 
 class TransacaoGerenciaNet(models.Model):
     
