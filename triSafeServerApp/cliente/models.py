@@ -7,7 +7,7 @@ from clienteIter.models import ClienteIter
 from comum.retorno import Retorno
 
 class Cliente(models.Model):
-    id_cliente_iter = models.IntegerField()
+    id_cliente_iter = models.IntegerField(primary_key=True)
     nome = models.CharField(max_length=70, null=False)
     nomeUsuario = models.CharField(max_length=20, blank=False, null=True)
     cpf = models.CharField(max_length=11, blank=False, null=True)
@@ -37,6 +37,30 @@ class Cliente(models.Model):
             listaClientes = Cliente.objects.filter(cpf=self.cpf)
             if listaClientes:
                 oCliente = listaClientes[0]
+                if oCliente:
+                    # Obtem o cadastro na Iter.
+                    oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
+                    
+                    if not oRetornoClienteIter.estado.ok:
+                        return oRetornoClienteIter
+                    
+                    self.converterDeClienteIter(oRetornoClienteIter.dados)
+                    retorno = Retorno(True)
+                    retorno.dados = self.json()
+            
+            return retorno
+        except Exception as e:
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
+            return retorno
+
+    def obterUltimo(self):
+        try:
+            # Valida se o cliente já está cadastrado.
+            listaClientes = Cliente.objects.filter()
+            if listaClientes:
+                oCliente = listaClientes[listaClientes.count()-1]
                 if oCliente:
                     # Obtem o cadastro na Iter.
                     oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
@@ -114,12 +138,9 @@ class Cliente(models.Model):
             self.email = oClienteIter['email']
 
     def validarDadosObrigatoriosChaves(self):
-        if len(str(self.cpf).strip()) <= 0:
-            return Retorno(False, "Informe o CPF.", 406)
+        if len(str(self.cpf).strip()) <= 0 and len(str(self.email).strip()) <= 0:
+            return Retorno(False, "Informe o CPF e/ou E-Mail.", 406)
 
-        if len(str(self.email).strip()) <= 0:
-            return Retorno(False, "Informe o e-mail.", 406)
-        
         return Retorno(True)
     
     def validarDadosObrigatorios(self):

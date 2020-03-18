@@ -4,7 +4,9 @@ from rest_framework import routers, serializers, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins
-from .models import Contrato
+from contrato.models import Contrato
+from produto.models import Produto
+from cliente.models import Cliente
 from rest_framework.renderers import JSONRenderer
 from comum.retorno import Retorno
 import json
@@ -37,7 +39,10 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     @classmethod
     def apropriarDadosHTTPChave(cls, request):
         oContrato = Contrato()
-        # oContrato.cpf = request.data['codigo']
+        oContrato.cliente = Cliente()
+
+        cliente = request.data['cliente']
+        oContrato.cliente.cpf = cliente['cpf']
 
         return oContrato
 
@@ -47,6 +52,6 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
         
         dadosContrato = request.data['contrato']
 
-        oContrato.valorTotal = dadosContrato['valorTotal']
-                
+        oContrato.chavesProdutos = dadosContrato['listaProdutos']
+        
         return oContrato

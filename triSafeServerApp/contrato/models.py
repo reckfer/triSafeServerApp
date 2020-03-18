@@ -18,37 +18,37 @@ class Contrato(models.Model):
         (SERVICO, 'Serviço'),
     ]
 
-    id_cliente_iter = models.IntegerField()
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
-    cliente = None
-    contrato = None
-
+    valorTotal = models.DecimalField(max_digits=10, decimal_places=2)
+    cliente = models.OneToOneField(Cliente, on_delete=models.CASCADE, blank=False, null=False)
+    produto = models.ManyToManyField(Produto)
+    chavesProdutos = None
+    
     def efetivar(self):
         try:
-            self.gerarContratoPDF()
-            # # retornoCliente = self.cliente.obter()
+            retornoCliente = self.cliente.obter()
 
-            # # if not retornoCliente.estado.ok:
-            # #     return retornoCliente
+            if not retornoCliente.estado.ok:
+                return retornoCliente
+
             # clienteTmp = Cliente()
             # clienteTmp.nome = "Fernando teste"
             # clienteTmp.cpf = "82951128053"
             # clienteTmp.email = "nandorex@gmail.com"
             # clienteTmp.telefone = "51999454554"
 
-            # oContrato = Contrato()
-            # oContrato.cliente = clienteTmp
+            oContrato = Contrato()
+            oContrato.cliente = retornoCliente
 
-            # # oContrato.produto = self
-            # oContrato.valorTotal = 243.00
+            oContrato.produto = self
+            oContrato.valorTotal = 243.00
 
-            # oBoleto = BoletoGerenciaNet()
-            # retornoBoleto = oBoleto.gerar(oContrato)
+            oBoleto = BoletoGerenciaNet()
+            retornoBoleto = oBoleto.gerar(oContrato)
             
-            # if not retornoBoleto.estado.ok:
-            #     return retornoBoleto
+            if not retornoBoleto.estado.ok:
+                return retornoBoleto
 
-            # return retornoBoleto
+            return retornoBoleto
 
             retorno = Retorno(True)
             return retorno
@@ -57,6 +57,14 @@ class Contrato(models.Model):
                     
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
+    
+    @classmethod
+    def associarProdutos(cls):
+        for produto in Contrato.chavesProdutos:
+            oProduto = Produto()
+            oProduto.codigo = produto['codigo']
+            oProduto.nome = produto['nome']
+            oContrato.produto.add(oProduto)
     
     def gerarContratoPDF(self):
         
@@ -71,7 +79,7 @@ class Contrato(models.Model):
 
     def __criarJson__(self):
         ret = {
-            "nome": self.cliente.nome,
+            "nome": self.cliente.nome
             }
         return ret
 

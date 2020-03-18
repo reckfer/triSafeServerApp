@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "C:\\Users\\ferna\\react-native\\trisafeapp"
+			"path": "triSafeServerApp"
 		},
 		{
-			"path": "triSafeServerApp"
+			"path": "C:\\Users\\ferna\\trisafeapp\\trisafeapp"
 		}
 	],
 	"settings": {}

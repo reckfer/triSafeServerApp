@@ -19,7 +19,6 @@ class Produto(models.Model):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     tipo = models.CharField(max_length=1, null=False, choices=TIPOS_PRODUTO, default=FISICO)
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
-    cliente = None
     
     def obter(self):
         try:
@@ -116,11 +115,11 @@ class Produto(models.Model):
 
     def __criarJson__(self):
         ret = {
-            "codigo": self.codigo,
-            "nome": self.nome,
-            "valor": self.valor,
-            "tipo": self.tipo,
-            "dt_hr_inclusao": self.dt_hr_inclusao,
+                "codigo": self.codigo,
+                "nome": self.nome,
+                "valor": self.valor,
+                "tipo": self.tipo,
+                "dt_hr_inclusao": self.dt_hr_inclusao,
             }
         return ret
 
