@@ -114,7 +114,7 @@ class BoletoGerenciaNet(models.Model):
 
 class TransacaoGerenciaNet(models.Model):
     
-    def incluir(self, oContrato):
+    def incluir(self):
         try:
             gn = Gerencianet(credentials)
 

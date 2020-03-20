@@ -9,6 +9,7 @@ from produto.models import Produto
 from cliente.models import Cliente
 from rest_framework.renderers import JSONRenderer
 from comum.retorno import Retorno
+from boleto.models import TransacaoGerenciaNet
 import json
 import traceback
 import sys
@@ -27,9 +28,22 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     def efetivar(self, request):
         try:
             oContrato = ContratoViewSet.apropriarDadosHTTP(request)
-            retorno = oContrato.efetivar()
+           
+            transacaoGerenciaNet = TransacaoGerenciaNet()
+                
+            retornoTransacao = transacaoGerenciaNet.incluir()
+            if not retornoTransacao.estado.ok:
+                return retornoTransacao
+
+            idContrato = str(oContrato.cliente.id_cliente_iter).rjust(6, '0') + str(retornoTransacao.dados['id']).rjust(10, '0')
             
-            return Response(retorno.json())
+            oContrato.contrato_id = idContrato
+            oContrato.save()
+
+            produtos = ContratoViewSet.extrairProdutosDadosHTTP(request)
+            oContrato.produto.add(produtos)
+            
+            return Response(Retorno(True))
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
@@ -37,21 +51,35 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             return Response(retorno.json())
     
     @classmethod
-    def apropriarDadosHTTPChave(cls, request):
+    def apropriarDadosHTTP(cls, request):
         oContrato = Contrato()
-        oContrato.cliente = Cliente()
-
-        cliente = request.data['cliente']
-        oContrato.cliente.cpf = cliente['cpf']
-
+        oContrato.cliente = ContratoViewSet.extrairClienteDadosHTTP(request)
+                        
         return oContrato
 
     @classmethod
-    def apropriarDadosHTTP(cls, request):
-        oContrato = ContratoViewSet.apropriarDadosHTTPChave(request)
+    def extrairClienteDadosHTTP(cls, request):
+        oCliente = None
+        cliente = request.data['cliente']
+        listaClientes = Cliente.objects.filter(cpf=cliente['cpf'])
         
-        dadosContrato = request.data['contrato']
+        if listaClientes:
+            oCliente = listaClientes[0]
 
-        oContrato.chavesProdutos = dadosContrato['listaProdutos']
-        
-        return oContrato
+        return oCliente
+
+    @classmethod
+    def extrairProdutosDadosHTTP(cls, request):
+        dadosContrato = request.data['contrato']
+        chavesProdutos = dadosContrato['listaProdutos']
+        produtos = []
+
+        for produto in chavesProdutos:
+            listaProdutos = Produto.objects.filter(codigo = produto['codigo'])
+            # produtoLista = Produto.objects.filter(codigo=produto['codigo'])
+            if listaProdutos:
+                oProduto = listaProdutos[0]
+                if oProduto:
+                    produtos.append(oProduto)
+                    
+        return produtos

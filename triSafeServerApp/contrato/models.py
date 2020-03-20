@@ -10,6 +10,11 @@ from boleto.models import BoletoGerenciaNet
 from fpdf import FPDF
 
 class Contrato(models.Model):
+    contrato_id = models.CharField(primary_key=True, max_length=16)
+    cliente = models.OneToOneField(Cliente, on_delete=models.CASCADE, blank=False, null=False)
+    produto = models.ManyToManyField(Produto)
+    valorTotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
     # Tipos de produtos
     FISICO = 'F'
     SERVICO = 'S'
@@ -17,11 +22,6 @@ class Contrato(models.Model):
         (FISICO, 'Contrato Físico'),
         (SERVICO, 'Serviço'),
     ]
-
-    valorTotal = models.DecimalField(max_digits=10, decimal_places=2)
-    cliente = models.OneToOneField(Cliente, on_delete=models.CASCADE, blank=False, null=False)
-    produto = models.ManyToManyField(Produto)
-    chavesProdutos = None
     
     def efetivar(self):
         try:
@@ -30,25 +30,19 @@ class Contrato(models.Model):
             if not retornoCliente.estado.ok:
                 return retornoCliente
 
-            # clienteTmp = Cliente()
-            # clienteTmp.nome = "Fernando teste"
-            # clienteTmp.cpf = "82951128053"
-            # clienteTmp.email = "nandorex@gmail.com"
-            # clienteTmp.telefone = "51999454554"
+            # oContrato = Contrato()
+            self.cliente = retornoCliente.dados
+            self.save()
 
-            oContrato = Contrato()
-            oContrato.cliente = retornoCliente
-
-            oContrato.produto = self
-            oContrato.valorTotal = 243.00
-
-            oBoleto = BoletoGerenciaNet()
-            retornoBoleto = oBoleto.gerar(oContrato)
+            # self.associarProdutos()
             
-            if not retornoBoleto.estado.ok:
-                return retornoBoleto
+            # oBoleto = BoletoGerenciaNet()
+            # retornoBoleto = oBoleto.gerar(oContrato)
+            
+            # if not retornoBoleto.estado.ok:
+            #     return retornoBoleto
 
-            return retornoBoleto
+            # return retornoBoleto
 
             retorno = Retorno(True)
             return retorno
@@ -57,15 +51,7 @@ class Contrato(models.Model):
                     
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
-    
-    @classmethod
-    def associarProdutos(cls):
-        for produto in Contrato.chavesProdutos:
-            oProduto = Produto()
-            oProduto.codigo = produto['codigo']
-            oProduto.nome = produto['nome']
-            oContrato.produto.add(oProduto)
-    
+
     def gerarContratoPDF(self):
         
         pdf = FPDF()
