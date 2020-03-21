@@ -15,42 +15,42 @@ credentials = {
 
 class BoletoGerenciaNet(models.Model):
     
-    def gerar(self, oContrato):
+    def gerar(self, m_contrato):
         try:
-            t = TransacaoGerenciaNet()
+            # t = TransacaoGerenciaNet()
             
-            retorno = t.incluir()
-            if not retorno.estado.ok:
-                return retorno
+            # retorno = t.incluir()
+            # if not retorno.estado.ok:
+            #     return retorno
 
             today = date.today()
 
-            dataVencimento = today.strftime("%Y-%m-%d")
+            data_vencimento = today.strftime("%Y-%m-%d")
             
-            gn = Gerencianet(credentials)
+            m_gerencia_net = Gerencianet(credentials)
  
             params = {
-                'id': retorno.dados['id']
+                'id': m_contrato.transacao_gerencia_net.charge_id
             }
             
             body = {
                 'payment': {
                     'banking_billet': {
-                        'expire_at': dataVencimento,
+                        'expire_at': data_vencimento,
                         'customer': {
-                            'name': oContrato.cliente.nome,
-                            'email': oContrato.cliente.email,
-                            'cpf': oContrato.cliente.cpf,
-                            # 'birth': oContrato.cliente.,
-                            'phone_number': oContrato.cliente.telefone
+                            'name': m_contrato.cliente.nome,
+                            'email': m_contrato.cliente.email,
+                            'cpf': m_contrato.cliente.cpf,
+                            # 'birth': m_contrato.cliente.,
+                            'phone_number': m_contrato.cliente.telefone
                         }
                     }
                 }
             }
             
-            oBillet = gn.pay_charge(params=params, body=body)
+            d_billet = m_gerencia_net.pay_charge(params=params, body=body)
 
-            retorno = self.tratarRetornoGerenciaNet(oBillet)
+            retorno = self.tratar_retorno_gerencia_net(d_billet)
 
             return retorno
 
@@ -60,49 +60,46 @@ class BoletoGerenciaNet(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
 
-    def tratarRetornoGerenciaNet(self, oBillet):
+    def tratar_retorno_gerencia_net(self, d_billet):
         retorno = Retorno(True)
-        oDados = None
 
-        if oBillet:
-            if 'error_description' in oBillet:
-                oError = oBillet['error_description']
-                msgErro = oError
+        if d_billet:
+            if 'error_description' in d_billet:
+                d_error = d_billet['error_description']
+                msg_erro = d_error
 
-                if 'message' in oError:
-                    msgErro = oError['message']
+                if 'message' in d_error:
+                    msg_erro = d_error['message']
 
-                if(oError):
-                    retorno = Retorno(False, msgErro, oBillet['error'])
+                if(d_error):
+                    retorno = Retorno(False, msg_erro, d_billet['error'])
                     return retorno
-            elif 'data' in oBillet:
-                oDadosBoleto = oBillet['data']
-                if oDadosBoleto:
-                    self.converterDeGerenciaNet(oDadosBoleto)
-                    oDados = self.json()    
+                    
+            elif 'data' in d_billet:
+                m_dados_boleto = d_billet['data']
+                if m_dados_boleto:
+                    self.converter_de_gerencia_net(m_dados_boleto)
                 else:
                     retorno = Retorno(False, 'Os dados de geração do boleto foram retornados vazios.')
 
         else:
             retorno = Retorno(False, 'O objeto retornado na geração do boleto está vazio.')
-        
-        retorno.dados = oDados
 
         return retorno
 
-    def converterDeGerenciaNet(self, oDadosBoleto):
-        if oDadosBoleto:
-            if 'pdf' in oDadosBoleto:
-                oPDF = oDadosBoleto['pdf']
-                if oPDF:
-                    self.url_pdf = oPDF['charge']
-            if 'link' in oDadosBoleto:
-                self.url_html = oDadosBoleto['link']
+    def converter_de_gerencia_net(self, m_dados_boleto):
+        if m_dados_boleto:
+            if 'pdf' in m_dados_boleto:
+                m_pdf = m_dados_boleto['pdf']
+                if m_pdf:
+                    self.url_pdf = m_pdf['charge']
+            if 'link' in m_dados_boleto:
+                self.url_html = m_dados_boleto['link']
     
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
             "url_boleto_pdf": self.url_pdf,
             "url_boleto_html": self.url_html,
@@ -116,7 +113,7 @@ class TransacaoGerenciaNet(models.Model):
     
     def incluir(self):
         try:
-            gn = Gerencianet(credentials)
+            m_gerencia_net = Gerencianet(credentials)
 
             body = {
                 'items': [{
@@ -130,11 +127,11 @@ class TransacaoGerenciaNet(models.Model):
                 }]
             }
             
-            oCharge = gn.create_charge(body=body)
-            self.converterDeGerenciaNet(oCharge)
+            d_charge = m_gerencia_net.create_charge(body=body)
+            self.converter_de_gerencia_net(d_charge)
 
             retorno = Retorno(True)
-            retorno.dados = self.json()
+            retorno.dados = self
 
             return retorno
 
@@ -144,21 +141,21 @@ class TransacaoGerenciaNet(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
     
-    def converterDeGerenciaNet(self, oCharge):
-        if oCharge:
-            oData = oCharge['data']
-            self.id = oData['charge_id']
-            self.dataCriacao = oData['created_at']
-            self.estado = oData['status']
-            self.total = oData['total']
+    def converter_de_gerencia_net(self, d_charge):
+        if d_charge:
+            d_dados_charge = d_charge['data']
+            self.id = d_dados_charge['charge_id']
+            self.data_criacao = d_dados_charge['created_at']
+            self.estado = d_dados_charge['status']
+            self.total = d_dados_charge['total']
 
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
             "id": self.id,
-            "data_criacao": self.dataCriacao,
+            "data_criacao": self.data_criacao,
             "estado": self.estado,
             "total": self.total
             }

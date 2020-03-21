@@ -40,7 +40,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'clientes', ClienteViewSet)
 router.register(r'clientes/incluir/', ClienteViewSet)
-router.register(r'clientes/obterUltimo/', ClienteViewSet)
+router.register(r'clientes/obter_ultimo/', ClienteViewSet)
 router.register(r'produtos', ProdutoViewSet)
 router.register(r'produtos/listar', ProdutoViewSet)
 router.register(r'produtos/contratar', ProdutoViewSet)

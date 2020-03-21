@@ -9,7 +9,7 @@ from comum.retorno import Retorno
 class Cliente(models.Model):
     id_cliente_iter = models.IntegerField(primary_key=True)
     nome = models.CharField(max_length=70, null=False)
-    nomeUsuario = models.CharField(max_length=20, blank=False, null=True)
+    nome_usuario = models.CharField(max_length=20, blank=False, null=True)
     cpf = models.CharField(max_length=11, blank=False, null=True)
     rg = models.CharField(max_length=10, blank=False, null=True)
     rua = models.CharField(max_length=200, blank=False, null=True)
@@ -21,12 +21,11 @@ class Cliente(models.Model):
     telefone = models.CharField(max_length=11, blank=False, null=True)
     email = models.EmailField()
     senha = models.CharField(max_length=20, blank=False, null=True)
-    senhaConfirmacao = models.CharField(max_length=20, blank=False, null=True)
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
     
     def obter(self):
         try:
-            retorno = Cliente.validarDadosObrigatoriosChaves(self)
+            retorno = Cliente.validar_dados_obrigatorios_chaves(self)
                 
             if not retorno.estado.ok:
                 return retorno
@@ -36,17 +35,18 @@ class Cliente(models.Model):
             # Valida se o cliente já está cadastrado.
             listaClientes = Cliente.objects.filter(cpf=self.cpf)
             if listaClientes:
-                oCliente = listaClientes[0]
-                if oCliente:
+                m_cliente = listaClientes[0]
+                if m_cliente:
                     # Obtem o cadastro na Iter.
-                    oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
+                    oRetornoClienteIter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
                     
                     if not oRetornoClienteIter.estado.ok:
                         return oRetornoClienteIter
                     
-                    self.converterDeClienteIter(oRetornoClienteIter.dados)
+                    self.converter_de_cliente_iter(oRetornoClienteIter.dadosJson)
+                    
                     retorno = Retorno(True)
-                    retorno.dados = self.json()
+                    retorno.dados = self
             
             return retorno
         except Exception as e:
@@ -55,22 +55,24 @@ class Cliente(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
 
-    def obterUltimo(self):
+    def obter_ultimo(self):
         try:
+            retorno = Retorno(False)
             # Valida se o cliente já está cadastrado.
             listaClientes = Cliente.objects.filter()
             if listaClientes:
-                oCliente = listaClientes[listaClientes.count()-1]
-                if oCliente:
+                m_cliente = listaClientes[listaClientes.count()-1]
+                if m_cliente:
                     # Obtem o cadastro na Iter.
-                    oRetornoClienteIter = ClienteIter.obter(self, oCliente.id_cliente_iter)
+                    oRetornoClienteIter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
                     
                     if not oRetornoClienteIter.estado.ok:
                         return oRetornoClienteIter
                     
-                    self.converterDeClienteIter(oRetornoClienteIter.dados)
+                    self.converter_de_cliente_iter(oRetornoClienteIter.dadosJson)
+                    
                     retorno = Retorno(True)
-                    retorno.dados = self.json()
+                    retorno.dados = self
             
             return retorno
         except Exception as e:
@@ -81,7 +83,7 @@ class Cliente(models.Model):
                 
     def incluir(self):
         try:
-            retorno = Cliente.validarDadosObrigatorios(self)
+            retorno = Cliente.validar_dados_obrigatorios(self)
             
             if not retorno.estado.ok:
                 return retorno
@@ -99,7 +101,7 @@ class Cliente(models.Model):
             if not retorno.estado.ok:
                 return retorno
 
-            oClienteIter = retorno.dados
+            oClienteIter = retorno.dadosJson
             self.id_cliente_iter = oClienteIter['id']
         
             f = open("demofile2.txt", "a")
@@ -112,7 +114,7 @@ class Cliente(models.Model):
             self.save()
             
             retorno = Retorno(True, 'Cadastro realizado com sucesso.', 200)
-            retorno.dados = self.json()
+            retorno.dados = self
 
             return retorno
         except Exception as e:
@@ -121,11 +123,11 @@ class Cliente(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
     
-    def converterDeClienteIter(self, oClienteIter):
+    def converter_de_cliente_iter(self, oClienteIter):
         if oClienteIter:
             self.id_cliente_iter = oClienteIter['id']
             self.nome = oClienteIter['name']
-            # self.nomeUsuario = oClienteIter['username']
+            # self.nome_usuario = oClienteIter['username']
             self.cpf = oClienteIter['document']
             # self.rg = oClienteIter['']
             self.rua = oClienteIter['street']
@@ -137,15 +139,15 @@ class Cliente(models.Model):
             self.telefone = oClienteIter['phone']
             self.email = oClienteIter['email']
 
-    def validarDadosObrigatoriosChaves(self):
+    def validar_dados_obrigatorios_chaves(self):
         if len(str(self.cpf).strip()) <= 0 and len(str(self.email).strip()) <= 0:
             return Retorno(False, "Informe o CPF e/ou E-Mail.", 406)
 
         return Retorno(True)
     
-    def validarDadosObrigatorios(self):
+    def validar_dados_obrigatorios(self):
         
-        retorno = Cliente.validarDadosObrigatoriosChaves(self)
+        retorno = Cliente.validar_dados_obrigatorios_chaves(self)
             
         if not retorno.estado.ok:
             return retorno
@@ -155,13 +157,13 @@ class Cliente(models.Model):
         return Retorno(True)
     
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
             "id_cliente_iter": self.id_cliente_iter,
             "nome": self.nome,
-            "nomeUsuario": self.nomeUsuario,
+            "nome_usuario": self.nome_usuario,
             "cpf": self.cpf,
             "rg": self.rg,
             "rua": self.rua,

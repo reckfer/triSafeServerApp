@@ -27,23 +27,29 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     @action(detail=False, methods=['post'])
     def efetivar(self, request):
         try:
-            oContrato = ContratoViewSet.apropriarDadosHTTP(request)
-           
-            transacaoGerenciaNet = TransacaoGerenciaNet()
+            m_contrato = ContratoViewSet.apropriar_dados_http(request)
+            retorno = m_contrato.incluir()
+
+            if not retorno.estado.ok:
+                return retorno
+            
+            lista_produtos = ContratoViewSet.extrair_produtos_dados_http(request)
+            m_contrato.atualizarProdutos(lista_produtos)
+            # transacaoGerenciaNet = TransacaoGerenciaNet()
                 
-            retornoTransacao = transacaoGerenciaNet.incluir()
-            if not retornoTransacao.estado.ok:
-                return retornoTransacao
+            # retornoTransacao = transacaoGerenciaNet.incluir()
+            # if not retornoTransacao.estado.ok:
+            #     return retornoTransacao
 
-            idContrato = str(oContrato.cliente.id_cliente_iter).rjust(6, '0') + str(retornoTransacao.dados['id']).rjust(10, '0')
+            # idContrato = str(m_contrato.cliente.id_cliente_iter).rjust(6, '0') + 456 #str(retornoTransacao.dadosJson['id']).rjust(10, '0')
             
-            oContrato.contrato_id = idContrato
-            oContrato.save()
+            # m_contrato.id_contrato = idContrato
+            # m_contrato.save()
 
-            produtos = ContratoViewSet.extrairProdutosDadosHTTP(request)
-            oContrato.produto.add(produtos)
+            # produtos = ContratoViewSet.extrair_produtos_dados_http(request)
+            # m_contrato.produto.add(*produtos)
             
-            return Response(Retorno(True))
+            return Response(retorno.json())
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
@@ -51,35 +57,26 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             return Response(retorno.json())
     
     @classmethod
-    def apropriarDadosHTTP(cls, request):
-        oContrato = Contrato()
-        oContrato.cliente = ContratoViewSet.extrairClienteDadosHTTP(request)
+    def apropriar_dados_http(cls, request):
+        m_contrato = Contrato()
+        m_contrato.cliente = ContratoViewSet.extrair_cliente_dados_http(request)
                         
-        return oContrato
+        return m_contrato
 
     @classmethod
-    def extrairClienteDadosHTTP(cls, request):
-        oCliente = None
-        cliente = request.data['cliente']
-        listaClientes = Cliente.objects.filter(cpf=cliente['cpf'])
-        
-        if listaClientes:
-            oCliente = listaClientes[0]
+    def extrair_cliente_dados_http(cls, request):
+        m_cliente = Cliente()
 
-        return oCliente
+        d_cliente = request.data['cliente']        
+        m_cliente.cpf = d_cliente['cpf']
+
+        return m_cliente
 
     @classmethod
-    def extrairProdutosDadosHTTP(cls, request):
-        dadosContrato = request.data['contrato']
-        chavesProdutos = dadosContrato['listaProdutos']
-        produtos = []
+    def extrair_produtos_dados_http(cls, request):
+        chaves_produtos = []
 
-        for produto in chavesProdutos:
-            listaProdutos = Produto.objects.filter(codigo = produto['codigo'])
-            # produtoLista = Produto.objects.filter(codigo=produto['codigo'])
-            if listaProdutos:
-                oProduto = listaProdutos[0]
-                if oProduto:
-                    produtos.append(oProduto)
+        dados_contrato = request.data['contrato']
+        chaves_produtos = dados_contrato['lista_produtos']
                     
-        return produtos
+        return chaves_produtos

@@ -10,10 +10,10 @@ from boleto.models import BoletoGerenciaNet
 from fpdf import FPDF
 
 class Contrato(models.Model):
-    contrato_id = models.CharField(primary_key=True, max_length=16)
-    cliente = models.OneToOneField(Cliente, on_delete=models.CASCADE, blank=False, null=False)
-    produto = models.ManyToManyField(Produto)
-    valorTotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    id_contrato = models.CharField(primary_key=True, max_length=16)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, blank=False, null=False)
+    produtos_contratados = models.ManyToManyField(Produto)
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     # Tipos de produtos
     FISICO = 'F'
@@ -23,34 +23,50 @@ class Contrato(models.Model):
         (SERVICO, 'Serviço'),
     ]
     
-    def efetivar(self):
+    def incluir(self):
         try:
-            retornoCliente = self.cliente.obter()
 
-            if not retornoCliente.estado.ok:
-                return retornoCliente
+            retorno_cliente = self.cliente.obter()
 
-            # oContrato = Contrato()
-            self.cliente = retornoCliente.dados
+            if not retorno_cliente.estado.ok:
+                return retorno_cliente
+
+            id_contrato = str(self.cliente.id_cliente_iter).rjust(6, '0') + '456' #str(retornoTransacao.dadosJson['id']).rjust(10, '0')
+            
+            self.id_contrato = id_contrato
+            self.cliente = retorno_cliente.dados
             self.save()
 
             # self.associarProdutos()
             
             # oBoleto = BoletoGerenciaNet()
-            # retornoBoleto = oBoleto.gerar(oContrato)
+            # retorno_boleto = oBoleto.gerar(m_contrato)
             
-            # if not retornoBoleto.estado.ok:
-            #     return retornoBoleto
+            # if not retorno_boleto.estado.ok:
+            #     return retorno_boleto
 
-            # return retornoBoleto
+            # return retorno_boleto
 
-            retorno = Retorno(True)
+            retorno = Retorno(True, 'Seu contrato foi gerado e será efetivado após o pagamento do boleto.')
             return retorno
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
+
+    def atualizarProdutos(self, chaves_produtos):
+        produtos = list()
+
+        for chave_produto in chaves_produtos:
+            
+            lista_produtos = Produto.objects.filter(codigo = chave_produto['codigo'])
+            if lista_produtos:
+                m_produto = lista_produtos[0]
+                if m_produto:
+                    produtos.append(m_produto)
+
+        self.produtos_contratados.add(*produtos)        
 
     def gerarContratoPDF(self):
         
@@ -61,9 +77,9 @@ class Contrato(models.Model):
         pdf.output("simple_demo.pdf")
     
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
             "nome": self.cliente.nome
             }

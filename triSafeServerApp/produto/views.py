@@ -4,7 +4,7 @@ from rest_framework import routers, serializers, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins
-from .models import Produto
+from produto.models import Produto
 from cliente.models import Cliente
 from rest_framework.renderers import JSONRenderer
 from comum.retorno import Retorno
@@ -25,10 +25,10 @@ class ProdutoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     @action(detail=False, methods=['post'])
     def listar(self, request):
         try:
-            p = Produto()
+            m_produto = Produto()
             
-            retornoProdutos = p.listar()
-            return Response(retornoProdutos.json())
+            retorno_produtos = m_produto.listar()
+            return Response(retorno_produtos.json())
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
@@ -36,23 +36,23 @@ class ProdutoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             return Response(retorno.json())
     
     @classmethod
-    def apropriarDadosHTTPChave(cls, request):
-        oProduto = Produto()
-        oProduto.cpf = request.data['codigo']
+    def apropriar_dados_http_chave(cls, request):
+        m_produto = Produto()
+        m_produto.cpf = request.data['codigo']
 
-        return oProduto
+        return m_produto
 
     @classmethod
-    def apropriarDadosHTTP(cls, request):
-        oProduto = ProdutoViewSet.apropriarDadosHTTPChave(request)
+    def apropriar_dados_http(cls, request):
+        m_produto = ProdutoViewSet.apropriar_dados_http_chave(request)
         
-        oProduto.nome = request.data['nome']
-        oProduto.tipo = request.data['tipo']
-        oProduto.valor = request.data['valor']
-        # listaProdutos = request.data['produtos']
+        m_produto.nome = request.data['nome']
+        m_produto.tipo = request.data['tipo']
+        m_produto.valor = request.data['valor']
+        # lista_produtos = request.data['produtos']
 
-        oCliente = Cliente()
-        oCliente.cpf = request.data['cpf']
-        oProduto.cliente = oCliente
+        m_cliente = Cliente()
+        m_cliente.cpf = request.data['cpf']
+        m_produto.cliente = m_cliente
                 
-        return oProduto
+        return m_produto

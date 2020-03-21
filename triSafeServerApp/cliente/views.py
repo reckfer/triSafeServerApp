@@ -24,10 +24,10 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     @action(detail=False, methods=['post'])
     def obter(self, request):
         try:
-            c = ClienteViewSet.apropriarDadosHTTPChave(request)
+            m_cliente = ClienteViewSet.apropriar_dados_http_chave(request)
 
-            retornoCliente = c.obter()
-            return Response(retornoCliente.json())
+            retorno_cliente = m_cliente.obter()
+            return Response(retorno_cliente.json())
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
@@ -35,12 +35,12 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             return Response(retorno.json())
     
     @action(detail=False, methods=['post'])
-    def obterUltimo(self, request):
+    def obter_ultimo(self, request):
         try:
-            c = Cliente()
-            retornoCliente = c.obterUltimo()
+            m_cliente = Cliente()
+            retorno_cliente = m_cliente.obter_ultimo()
             
-            return Response(retornoCliente.json())
+            return Response(retorno_cliente.json())
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
                     
@@ -50,9 +50,9 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     @action(detail=False, methods=['post'])
     def incluir(self, request):
         try:
-            c = ClienteViewSet.apropriarDadosHTTP(request)
+            m_cliente = ClienteViewSet.apropriar_dados_http(request)
             
-            retorno = c.incluir()
+            retorno = m_cliente.incluir()
 
             return Response(retorno.json())
 
@@ -63,29 +63,29 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
             return Response(retorno.json())
 
     @classmethod
-    def apropriarDadosHTTPChave(cls, request):
-        c = Cliente()
+    def apropriar_dados_http_chave(cls, request):
+        m_cliente = Cliente()
         
-        cliente = request.data['cliente']
-        c.cpf = cliente['cpf']
-        c.email = cliente['email']
+        d_cliente = request.data['cliente']
+        m_cliente.cpf = d_cliente['cpf']
+        m_cliente.email = d_cliente['email']
 
-        return c
+        return m_cliente
 
     @classmethod
-    def apropriarDadosHTTP(cls, request):
-        c = ClienteViewSet.apropriarDadosHTTPChave(request)
+    def apropriar_dados_http(cls, request):
+        m_cliente = ClienteViewSet.apropriar_dados_http_chave(request)
         
-        cliente = request.data['cliente']
-        c.rg = cliente['rg']
-        c.nome = cliente['nome']
-        c.nomeUsuario = cliente['nomeUsuario']
-        c.rua = cliente['rua']
-        c.telefone = cliente['telefone']
-        c.numero = cliente['numero']
-        c.bairro = cliente['bairro']
-        c.cidade = cliente['cidade']
-        c.cep = cliente['cep']
-        c.uf = cliente['uf']
+        d_cliente = request.data['cliente']
+        m_cliente.rg = d_cliente['rg']
+        m_cliente.nome = d_cliente['nome']
+        m_cliente.nome_usuario = d_cliente['nome_usuario']
+        m_cliente.rua = d_cliente['rua']
+        m_cliente.telefone = d_cliente['telefone']
+        m_cliente.numero = d_cliente['numero']
+        m_cliente.bairro = d_cliente['bairro']
+        m_cliente.cidade = d_cliente['cidade']
+        m_cliente.cep = d_cliente['cep']
+        m_cliente.uf = d_cliente['uf']
 
-        return c
+        return m_cliente

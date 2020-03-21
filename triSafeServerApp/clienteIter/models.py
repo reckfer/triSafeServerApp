@@ -11,7 +11,7 @@ class ClienteIter():
             retorno = Retorno(False, respostaHTTP.text, respostaHTTP.status_code)
         else:
             retorno = Retorno(True)
-            retorno.dados = respostaHTTP.json()['user']
+            retorno.dadosJson = respostaHTTP.json()['user']
 
         return retorno
 
@@ -38,7 +38,7 @@ class ClienteIter():
         jsonCliente = json.dumps({
             "user": {
                 "email": cliente.email,
-                "username": cliente.nomeUsuario,
+                "username": cliente.nome_usuario,
                 "name": cliente.nome,
                 "document": cliente.cpf,
                 "expire_date": "2050-01-01 00:00:00",

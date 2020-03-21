@@ -22,7 +22,7 @@ class Produto(models.Model):
     
     def obter(self):
         try:
-            retorno = Produto.validarDadosObrigatoriosChaves(self)
+            retorno = Produto.validar_dados_obrigatorios_chaves(self)
                 
             if not retorno.estado.ok:
                 return retorno
@@ -30,12 +30,12 @@ class Produto(models.Model):
             retorno = Retorno(False, 'Produto não cadastrado', 'NaoCadastrado', 406)
             
             # Valida se o cliente já está cadastrado.
-            listaProdutos = Produto.objects.filter(nome=self.nome)
-            if listaProdutos:
-                oProduto = listaProdutos[0]
-                if oProduto:
+            lista_produtos = Produto.objects.filter(nome=self.nome)
+            if lista_produtos:
+                m_produto = lista_produtos[0]
+                if m_produto:
                     retorno = Retorno(True)
-                    retorno.dados = oProduto.json()
+                    retorno.dados = m_produto
             
             return retorno
 
@@ -50,14 +50,14 @@ class Produto(models.Model):
             retorno = Retorno(False, 'Nenhum Produto TriSafe está cadastrado.', 'NaoCadastrado', 406)
 
             # Lista os produtos cadastrados.
-            listaProdutos = Produto.objects.all()
-            if listaProdutos:
-                listaProdutosJson = []
-                for oProduto in listaProdutos:
-                    listaProdutosJson.append(oProduto)
+            lista_produtos = Produto.objects.all()
+            if lista_produtos:
+                lista_produtos_json = []
+                for m_produto in lista_produtos:
+                    lista_produtos_json.append(m_produto)
 
                 retorno = Retorno(True)
-                retorno.dados = listaProdutos
+                retorno.dados = lista_produtos
                 
             return retorno
             
@@ -69,7 +69,7 @@ class Produto(models.Model):
 
     def incluir(self):
         try:
-            retorno = Produto.validarDadosObrigatorios(self)
+            retorno = Produto.validar_dados_obrigatorios(self)
             
             if not retorno.estado.ok:
                 return retorno
@@ -83,7 +83,7 @@ class Produto(models.Model):
             self.save()
             
             retorno = Retorno(True, 'Cadastro realizado com sucesso.', 200)
-            retorno.dados = self.json()
+            retorno.dados = self
 
             return retorno
         except Exception as e:
@@ -92,15 +92,15 @@ class Produto(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
     
-    def validarDadosObrigatoriosChaves(self):
+    def validar_dados_obrigatorios_chaves(self):
         if self.codigo <= 0 or len(str(self.nome).strip()) <= 0 :
             return Retorno(False, "Informe o código ou o nome completo do produto.", 406)
 
         return Retorno(True)
     
-    def validarDadosObrigatorios(self):
+    def validar_dados_obrigatorios(self):
         
-        retorno = Produto.validarDadosObrigatoriosChaves(self)
+        retorno = Produto.validar_dados_obrigatorios_chaves(self)
         
         if not retorno.estado.ok:
             return retorno
@@ -111,9 +111,9 @@ class Produto(models.Model):
         return Retorno(True)
     
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
                 "codigo": self.codigo,
                 "nome": self.nome,

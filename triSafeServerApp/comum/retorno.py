@@ -1,24 +1,28 @@
 from django.forms.models import model_to_dict
 from django.db.models.query import QuerySet
+from django.db import models
 import json
 
 class Retorno:
                         
     def __init__(self, ind_ok = False, msg = '', codMensagem = '', httpStatus = 500):        
         self.estado = EstadoExecucao(ind_ok, msg, codMensagem, httpStatus)
-        self.dados = ''
-
+        self.dados = None
+        self.dadosJson = ''
+        
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         oDados = self.dados
         
         if type(self.dados) == 'dict':
             oDados = model_to_dict(self.dados)
         elif isinstance(self.dados, QuerySet):
             oDados = list(self.dados.values())
-
+        elif isinstance(self.dados, models.Model):
+            oDados = self.dados.json()
+            
         ret = {
             "estado": self.estado.json(),
             "dados": oDados,
@@ -26,7 +30,7 @@ class Retorno:
         return ret
     
     def __str__(self):
-        return json.dumps(self.__criarJson__())
+        return json.dumps(self.__criar_json__())
 
 class EstadoExecucao:
     def __init__(self, indOK = False, msg = '', codMensagem = '', httpStatus = 500):
@@ -41,9 +45,9 @@ class EstadoExecucao:
             self.httpStatus = httpStatus
         
     def json(self):
-        return self.__criarJson__()
+        return self.__criar_json__()
 
-    def __criarJson__(self):
+    def __criar_json__(self):
         ret = {
             "ok": self.ok,
             "mensagem": self.mensagem,
@@ -53,4 +57,4 @@ class EstadoExecucao:
         return ret
 
     def __str__(self):
-        return json.dumps(self.__criarJson__())
+        return json.dumps(self.__criar_json__())
