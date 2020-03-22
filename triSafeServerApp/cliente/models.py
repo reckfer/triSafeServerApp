@@ -22,6 +22,7 @@ class Cliente(models.Model):
     email = models.EmailField()
     senha = models.CharField(max_length=20, blank=False, null=True)
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
+    ult_atualizacao = models.DateTimeField(blank=False, null=False, auto_now=True)
     
     def obter(self):
         try:
@@ -33,17 +34,17 @@ class Cliente(models.Model):
             retorno = Retorno(False, 'Cliente não cadastrado', 'NaoCadastrado', 406)
             
             # Valida se o cliente já está cadastrado.
-            listaClientes = Cliente.objects.filter(cpf=self.cpf)
-            if listaClientes:
-                m_cliente = listaClientes[0]
+            lista_clientes = Cliente.objects.filter(cpf=self.cpf)
+            if lista_clientes:
+                m_cliente = lista_clientes[0]
                 if m_cliente:
                     # Obtem o cadastro na Iter.
-                    oRetornoClienteIter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
+                    retorno_cliente_iter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
                     
-                    if not oRetornoClienteIter.estado.ok:
-                        return oRetornoClienteIter
+                    if not retorno_cliente_iter.estado.ok:
+                        return retorno_cliente_iter
                     
-                    self.converter_de_cliente_iter(oRetornoClienteIter.dadosJson)
+                    self.converter_de_cliente_iter(retorno_cliente_iter.json())
                     
                     retorno = Retorno(True)
                     retorno.dados = self
@@ -59,17 +60,17 @@ class Cliente(models.Model):
         try:
             retorno = Retorno(False)
             # Valida se o cliente já está cadastrado.
-            listaClientes = Cliente.objects.filter()
-            if listaClientes:
-                m_cliente = listaClientes[listaClientes.count()-1]
+            lista_clientes = Cliente.objects.filter()
+            if lista_clientes:
+                m_cliente = lista_clientes[lista_clientes.count()-1]
                 if m_cliente:
                     # Obtem o cadastro na Iter.
-                    oRetornoClienteIter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
+                    retorno_cliente_iter = ClienteIter.obter(self, m_cliente.id_cliente_iter)
                     
-                    if not oRetornoClienteIter.estado.ok:
-                        return oRetornoClienteIter
+                    if not retorno_cliente_iter.estado.ok:
+                        return retorno_cliente_iter
                     
-                    self.converter_de_cliente_iter(oRetornoClienteIter.dadosJson)
+                    self.converter_de_cliente_iter(retorno_cliente_iter.json())
                     
                     retorno = Retorno(True)
                     retorno.dados = self
@@ -101,13 +102,9 @@ class Cliente(models.Model):
             if not retorno.estado.ok:
                 return retorno
 
-            oClienteIter = retorno.dadosJson
-            self.id_cliente_iter = oClienteIter['id']
+            d_cliente_iter = retorno.json()
+            self.id_cliente_iter = d_cliente_iter['id']
         
-            f = open("demofile2.txt", "a")
-            f.write(str(oClienteIter))
-            f.close()
-            
             if not retorno.estado.ok:
                 return retorno
 
@@ -123,21 +120,22 @@ class Cliente(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
     
-    def converter_de_cliente_iter(self, oClienteIter):
-        if oClienteIter:
-            self.id_cliente_iter = oClienteIter['id']
-            self.nome = oClienteIter['name']
-            # self.nome_usuario = oClienteIter['username']
-            self.cpf = oClienteIter['document']
-            # self.rg = oClienteIter['']
-            self.rua = oClienteIter['street']
-            self.numero = oClienteIter['number']
-            self.cep = oClienteIter['zipcode']
-            self.bairro = oClienteIter['district']
-            self.cidade = oClienteIter['city']
-            self.uf = oClienteIter['state']
-            self.telefone = oClienteIter['phone']
-            self.email = oClienteIter['email']
+    def converter_de_cliente_iter(self, d_cliente_iter):
+        if d_cliente_iter:
+            dados = d_cliente_iter['dados']
+            if dados:
+                self.id_cliente_iter = dados['id']
+                self.nome = dados['name']
+                # self.nome_usuario = dados['username']
+                self.cpf = dados['document']
+                self.rua = dados['street']
+                self.numero = dados['number']
+                self.cep = dados['zipcode']
+                self.bairro = dados['district']
+                self.cidade = dados['city']
+                self.uf = dados['state']
+                self.telefone = dados['phone']
+                self.email = dados['email']
 
     def validar_dados_obrigatorios_chaves(self):
         if len(str(self.cpf).strip()) <= 0 and len(str(self.email).strip()) <= 0:

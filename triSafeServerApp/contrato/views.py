@@ -9,7 +9,8 @@ from produto.models import Produto
 from cliente.models import Cliente
 from rest_framework.renderers import JSONRenderer
 from comum.retorno import Retorno
-from boleto.models import TransacaoGerenciaNet
+# from boleto.models import TransacaoGerenciaNet
+from boleto.models import BoletoGerenciaNet
 import json
 import traceback
 import sys
@@ -28,26 +29,15 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     def efetivar(self, request):
         try:
             m_contrato = ContratoViewSet.apropriar_dados_http(request)
-            retorno = m_contrato.incluir()
+            
+            lista_produtos = ContratoViewSet.extrair_produtos_dados_http(request)
+            retorno = m_contrato.incluir(lista_produtos)
 
             if not retorno.estado.ok:
                 return retorno
-            
-            lista_produtos = ContratoViewSet.extrair_produtos_dados_http(request)
-            m_contrato.atualizarProdutos(lista_produtos)
-            # transacaoGerenciaNet = TransacaoGerenciaNet()
-                
-            # retornoTransacao = transacaoGerenciaNet.incluir()
-            # if not retornoTransacao.estado.ok:
-            #     return retornoTransacao
 
-            # idContrato = str(m_contrato.cliente.id_cliente_iter).rjust(6, '0') + 456 #str(retornoTransacao.dadosJson['id']).rjust(10, '0')
-            
-            # m_contrato.id_contrato = idContrato
-            # m_contrato.save()
-
-            # produtos = ContratoViewSet.extrair_produtos_dados_http(request)
-            # m_contrato.produto.add(*produtos)
+            m_boleto = BoletoGerenciaNet()
+            retorno = m_boleto.gerar(m_contrato)
             
             return Response(retorno.json())
         except Exception as e:
@@ -77,6 +67,6 @@ class ContratoViewSet(viewsets.ModelViewSet, permissions.BasePermission):
         chaves_produtos = []
 
         dados_contrato = request.data['contrato']
-        chaves_produtos = dados_contrato['lista_produtos']
+        chaves_produtos = dados_contrato['listaProdutos']
                     
         return chaves_produtos

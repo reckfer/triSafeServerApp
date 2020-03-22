@@ -19,6 +19,7 @@ class Produto(models.Model):
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     tipo = models.CharField(max_length=1, null=False, choices=TIPOS_PRODUTO, default=FISICO)
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
+    ult_atualizacao = models.DateTimeField(blank=False, null=False, auto_now=True)
     
     def obter(self):
         try:
@@ -59,6 +60,34 @@ class Produto(models.Model):
                 retorno = Retorno(True)
                 retorno.dados = lista_produtos
                 
+            return retorno
+            
+        except Exception as e:
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
+            return retorno
+
+    def listar_especificos(self, chaves_produtos):
+        try:
+            msgNaoEncontrado = 'Cadastro do produto {0} ({1})) não encontrado.'
+            
+            produtos = list()
+
+            retorno = Retorno(True)
+            retorno.dados = produtos
+
+            for chave_produto in chaves_produtos:
+                
+                lista_produtos = Produto.objects.filter(codigo = chave_produto['codigo'])
+                if lista_produtos:
+                    m_produto = lista_produtos[0]
+                    if m_produto:
+                        produtos.append(m_produto)
+                    else:
+                        retorno = Retorno(False, msgNaoEncontrado.format(chave_produto['nome'], chave_produto['codigo']), 'NaoCadastrado', 406)
+                        break
+            
             return retorno
             
         except Exception as e:

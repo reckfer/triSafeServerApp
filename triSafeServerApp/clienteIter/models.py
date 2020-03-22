@@ -11,7 +11,7 @@ class ClienteIter():
             retorno = Retorno(False, respostaHTTP.text, respostaHTTP.status_code)
         else:
             retorno = Retorno(True)
-            retorno.dadosJson = respostaHTTP.json()['user']
+            retorno.dados = respostaHTTP.json()['user']
 
         return retorno
 

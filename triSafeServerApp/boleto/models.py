@@ -26,11 +26,9 @@ class BoletoGerenciaNet(models.Model):
             today = date.today()
 
             data_vencimento = today.strftime("%Y-%m-%d")
-            
-            m_gerencia_net = Gerencianet(credentials)
  
             params = {
-                'id': m_contrato.transacao_gerencia_net.charge_id
+                'id': m_contrato.charge_id
             }
             
             body = {
@@ -47,7 +45,7 @@ class BoletoGerenciaNet(models.Model):
                     }
                 }
             }
-            
+            m_gerencia_net = Gerencianet(credentials)
             d_billet = m_gerencia_net.pay_charge(params=params, body=body)
 
             retorno = self.tratar_retorno_gerencia_net(d_billet)
@@ -111,25 +109,13 @@ class BoletoGerenciaNet(models.Model):
 
 class TransacaoGerenciaNet(models.Model):
     
-    def incluir(self):
+    def incluir(self, d_dados_pedido):
         try:
             m_gerencia_net = Gerencianet(credentials)
 
-            body = {
-                'items': [{
-                    'name': "Cliente 1",
-                    'value': 1000,
-                    'amount': 2
-                }],
-                'shippings': [{
-                    'name': "Contrato de adesao",
-                    'value': 100
-                }]
-            }
-            
-            d_charge = m_gerencia_net.create_charge(body=body)
+            d_charge = m_gerencia_net.create_charge(body=d_dados_pedido)
             self.converter_de_gerencia_net(d_charge)
-
+            
             retorno = Retorno(True)
             retorno.dados = self
 
@@ -140,7 +126,7 @@ class TransacaoGerenciaNet(models.Model):
                     
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
-    
+
     def converter_de_gerencia_net(self, d_charge):
         if d_charge:
             d_dados_charge = d_charge['data']

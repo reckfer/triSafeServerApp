@@ -7,6 +7,7 @@ from comum.retorno import Retorno
 from cliente.models import Cliente
 from produto.models import Produto
 from boleto.models import BoletoGerenciaNet
+from boleto.models import TransacaoGerenciaNet
 from fpdf import FPDF
 
 class Contrato(models.Model):
@@ -14,6 +15,9 @@ class Contrato(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, blank=False, null=False)
     produtos_contratados = models.ManyToManyField(Produto)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    charge_id = models.CharField(max_length=10, blank=False, null=True)
+    dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
+    ult_atualizacao = models.DateTimeField(blank=False, null=False, auto_now=True)
 
     # Tipos de produtos
     FISICO = 'F'
@@ -23,7 +27,7 @@ class Contrato(models.Model):
         (SERVICO, 'Serviço'),
     ]
     
-    def incluir(self):
+    def incluir(self, chaves_produtos):
         try:
 
             retorno_cliente = self.cliente.obter()
@@ -31,23 +35,35 @@ class Contrato(models.Model):
             if not retorno_cliente.estado.ok:
                 return retorno_cliente
 
-            id_contrato = str(self.cliente.id_cliente_iter).rjust(6, '0') + '456' #str(retornoTransacao.dadosJson['id']).rjust(10, '0')
+            m_produto = Produto()
+            retorno_produtos = m_produto.listar_especificos(chaves_produtos)
             
-            self.id_contrato = id_contrato
+            if not retorno_produtos.estado.ok:
+                return retorno_produtos
+
+            d_dados_pedido = self.gerar_dados_pedido_transacao_gerencia_net(retorno_produtos.dados)
+
+            m_transacao_gerencia_net = TransacaoGerenciaNet()
+
+            retorno_transacao = m_transacao_gerencia_net.incluir(d_dados_pedido)
+
+            if not retorno_transacao.estado.ok:
+                return retorno_transacao
+            
+            self.charge_id = m_transacao_gerencia_net.id            
+            self.id_contrato = str(self.cliente.id_cliente_iter).rjust(6, '0') + str(self.charge_id).rjust(10, '0')
             self.cliente = retorno_cliente.dados
+            self.calcular_valor_total(retorno_produtos.dados)
+
+            # Inclui na base
             self.save()
 
-            # self.associarProdutos()
-            
-            # oBoleto = BoletoGerenciaNet()
-            # retorno_boleto = oBoleto.gerar(m_contrato)
-            
-            # if not retorno_boleto.estado.ok:
-            #     return retorno_boleto
-
-            # return retorno_boleto
+            # Atualiza com os produtos
+            self.produtos_contratados.add(*retorno_produtos.dados)
 
             retorno = Retorno(True, 'Seu contrato foi gerado e será efetivado após o pagamento do boleto.')
+            retorno.dados = self
+
             return retorno
         except Exception as e:
             print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
@@ -55,19 +71,40 @@ class Contrato(models.Model):
             retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
             return retorno
 
-    def atualizarProdutos(self, chaves_produtos):
-        produtos = list()
+    def calcular_valor_total(self, m_produtos):
+        
+        self.valor_total = 0.0
 
-        for chave_produto in chaves_produtos:
+        for m_produto in m_produtos:
+            self.valor_total = float(self.valor_total) + float(m_produto.valor)
+    
+    def gerar_dados_pedido_transacao_gerencia_net(self, m_produtos):
+        produtos = []
+        
+        # self.valor_total = 0.0
+
+        for m_produto in m_produtos:
+            # self.valor_total = float(self.valor_total) + float(m_produto.valor)
             
-            lista_produtos = Produto.objects.filter(codigo = chave_produto['codigo'])
-            if lista_produtos:
-                m_produto = lista_produtos[0]
-                if m_produto:
-                    produtos.append(m_produto)
+            item = {
+                'name': m_produto.nome,
+                'value': int(float(m_produto.valor) * 100),
+                'amount': 1
+            }
+            produtos.append(item)
 
-        self.produtos_contratados.add(*produtos)        
+        # frete = {
+        #     'name': "Contrato de adesao",
+        #     'value': float(self.valor_total) * 100
+        # }
 
+        d_dados_pedido = {
+            'items': produtos,
+            # 'shippings': frete
+        }
+
+        return d_dados_pedido
+        
     def gerarContratoPDF(self):
         
         pdf = FPDF()
@@ -82,7 +119,7 @@ class Contrato(models.Model):
     def __criar_json__(self):
         ret = {
             "nome": self.cliente.nome
-            }
+        }
         return ret
 
     def __str__(self):
