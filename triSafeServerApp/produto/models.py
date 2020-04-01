@@ -30,7 +30,6 @@ class Produto(models.Model):
 
             retorno = Retorno(False, 'Produto não cadastrado', 'NaoCadastrado', 406)
             
-            # Valida se o cliente já está cadastrado.
             lista_produtos = Produto.objects.filter(nome=self.nome)
             if lista_produtos:
                 m_produto = lista_produtos[0]

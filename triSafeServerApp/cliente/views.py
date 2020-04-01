@@ -66,7 +66,7 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     def apropriar_dados_http_chave(cls, request):
         m_cliente = Cliente()
         
-        d_dados_app = request.data['dadosApp']
+        d_dados_app = request.data['dados_app']
         d_cliente = d_dados_app['cliente']
         m_cliente.cpf = d_cliente['cpf']
         m_cliente.email = d_cliente['email']
@@ -77,7 +77,7 @@ class ClienteViewSet(viewsets.ModelViewSet, permissions.BasePermission):
     def apropriar_dados_http(cls, request):
         m_cliente = ClienteViewSet.apropriar_dados_http_chave(request)
         
-        d_dados_app = request.data['dadosApp']
+        d_dados_app = request.data['dados_app']
         d_cliente = d_dados_app['cliente']
         m_cliente.rg = d_cliente['rg']
         m_cliente.nome = d_cliente['nome']

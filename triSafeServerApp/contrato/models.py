@@ -18,6 +18,7 @@ class Contrato(models.Model):
     charge_id = models.CharField(max_length=10, blank=False, null=True)
     dt_hr_inclusao = models.DateTimeField(blank=False, null=False, auto_now_add=True)
     ult_atualizacao = models.DateTimeField(blank=False, null=False, auto_now=True)
+    aceito = models.BooleanField(default=False)
 
     # Tipos de produtos
     FISICO = 'F'
@@ -63,6 +64,24 @@ class Contrato(models.Model):
 
             retorno = Retorno(True, 'Seu contrato foi gerado e será efetivado após o pagamento do boleto.')
             retorno.dados = self
+
+            return retorno
+        except Exception as e:
+            print(traceback.format_exception(None, e, e.__traceback__), file=sys.stderr, flush=True)
+                    
+            retorno = Retorno(False, 'Falha de comunicação. Em breve será normalizado.')
+            return retorno
+
+    def aceitar(self):
+        try:
+
+            m_contratos = Contrato.objects.filter(id_contrato=self.id_contrato)
+            
+            if m_contratos:
+                m_contrato = m_contratos[0]
+                if m_contrato:
+                    retorno = Retorno(True)
+                    retorno.dados = m_contrato
 
             return retorno
         except Exception as e:
@@ -117,8 +136,16 @@ class Contrato(models.Model):
         return self.__criar_json__()
 
     def __criar_json__(self):
+        d_produtos_contratados = self.produtos_contratados
+        
         ret = {
-            "nome": self.cliente.nome
+            'id_contrato': self.id_contrato,
+            'cliente': self.cliente.json(),
+            'produtos_contratados': self.produtos_contratados.json(),
+            'valor_total': self.valor_total,
+            'charge_id' : self.charge_id,
+            'dt_hr_inclusao' : self.dt_hr_inclusao,
+            'ult_atualizacao' : self.ult_atualizacao,
         }
         return ret
 

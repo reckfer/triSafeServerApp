@@ -45,7 +45,8 @@ router.register(r'produtos', ProdutoViewSet)
 router.register(r'produtos/listar', ProdutoViewSet)
 router.register(r'produtos/contratar', ProdutoViewSet)
 router.register(r'contratos', ContratoViewSet)
-router.register(r'contratos/efetivar/', ContratoViewSet)
+router.register(r'contratos/incluir/', ContratoViewSet)
+router.register(r'contratos/aceitar/', ContratoViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
